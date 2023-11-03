@@ -35,6 +35,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &Out
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	DOREPLIFETIME(UCombatComponent, bAiming);
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
 }
 
@@ -45,6 +46,24 @@ void UCombatComponent::BeginPlay()
 	
 }
 
+void UCombatComponent::SetAiming(bool bIsAiming)
+{
+	//this is just "drawing" the client as aiming without waiting for the server to replicate the request back to it. Immediate feedback
+	bAiming = bIsAiming;
+
+	//SOLUTION 1: for getting the character aim to be replicated across server and client
+	// if(!Character->HasAuthority()){
+	// 	ServerSetAiming(bIsAiming);
+	// }
+
+	//FINAL SOLUTION: see notes as to why with link to reference graph in documentation
+	ServerSetAiming(bIsAiming);
+}
+
+void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
+{
+	bAiming = bIsAiming;
+}
 
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {

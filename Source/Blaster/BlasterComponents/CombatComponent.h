@@ -28,6 +28,13 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	//this is called from the character class to tell the server to propagate aiming across server and clients
+	void SetAiming(bool bIsAiming);
+
+	//this is our RPC for aiming and we will use the input parameter
+	UFUNCTION(Server, Reliable)
+	void ServerSetAiming(bool bIsAiming);
+
 private:
 
 	class ABlasterCharacter* Character;
@@ -35,5 +42,8 @@ private:
 	//stores the currently equipped weapon
 	UPROPERTY(Replicated)
 	class AWeapon* EquippedWeapon;
+
+	UPROPERTY(Replicated)
+	bool bAiming;
 
 };
