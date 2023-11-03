@@ -22,6 +22,9 @@ public:
 
 	void EquipWeapon(AWeapon* WeaponToEquip);
 
+	//This is where we register variables to be replicated
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -30,6 +33,7 @@ private:
 	class ABlasterCharacter* Character;
 
 	//stores the currently equipped weapon
+	UPROPERTY(Replicated)
 	class AWeapon* EquippedWeapon;
 
 };

@@ -34,4 +34,6 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 
     //if we are adding inputs to the controller (holding W key for example) then this will be true
     bIsAccelerating = BlasterCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f ? true : false;
+
+    bWeaponEquipped = BlasterCharacter->IsWeaponEquipped();
 }
