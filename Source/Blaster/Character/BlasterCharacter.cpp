@@ -30,6 +30,8 @@ ABlasterCharacter::ABlasterCharacter()
 
 	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	Combat->SetIsReplicated(true);
+
+	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 }
 
 // Called when the game starts or when spawned
@@ -51,6 +53,7 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis("Turn", this, &ThisClass::Turn);
 	PlayerInputComponent->BindAxis("LookUp", this, &ThisClass::LookUp);
 
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ThisClass::CrouchButtonPressed);
 	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &ThisClass::EquipButtonPressed);
 
 	bUseControllerRotationYaw = false;
@@ -118,6 +121,18 @@ void ABlasterCharacter::EquipButtonPressed()
 			//we do not need to have the _Implementation here, this is just for when we are defining the function
 			ServerEquipButtonPressed();
 		}
+	}
+}
+
+void ABlasterCharacter::CrouchButtonPressed()
+{
+	//this is a function on the character class, which passes off a lot of behavior on the character movement component
+	//this is replicated to clients as specified in the Character.h file
+	if(bIsCrouched){
+		UnCrouch();
+	}
+	else{
+		Crouch();
 	}
 }
 

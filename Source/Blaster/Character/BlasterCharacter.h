@@ -38,6 +38,7 @@ protected:
 	void LookUp(float Value);
 
 	void EquipButtonPressed();
+	void CrouchButtonPressed();
 
 private:
 
