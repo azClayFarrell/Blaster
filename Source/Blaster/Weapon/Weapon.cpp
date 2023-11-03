@@ -5,6 +5,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Blaster/Character/BlasterCharacter.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 AWeapon::AWeapon()
@@ -37,6 +38,13 @@ AWeapon::AWeapon()
 
 	PickupWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidget"));
 	PickupWidget->SetupAttachment(RootComponent);
+}
+
+void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AWeapon, WeaponState);
 }
 
 // Called when the game starts or when spawned
@@ -87,5 +95,34 @@ void AWeapon::ShowPickupWidget(bool bShowWidget)
 {
 	if(PickupWidget){
 		PickupWidget->SetVisibility(bShowWidget);
+	}
+}
+
+void AWeapon::SetWeaponState(EWeaponState State)
+{
+	WeaponState = State;
+
+	switch(WeaponState){
+		case EWeaponState::EWS_Equipped:
+			//once the weapon has been picked up, we can disable the widget
+			ShowPickupWidget(false);
+			
+			//disable collisions for the area sphere that the weapon has
+			AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+			//aparently we don't actually need to do this
+			//AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			break;
+	}
+}
+
+void AWeapon::OnRep_WeaponState()
+{
+	switch(WeaponState){
+		case EWeaponState::EWS_Equipped:
+			ShowPickupWidget(false);
+			//aparently we don't actually need to do this
+			//AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			break;
 	}
 }

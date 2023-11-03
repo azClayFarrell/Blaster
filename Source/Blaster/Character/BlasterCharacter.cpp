@@ -110,8 +110,14 @@ void ABlasterCharacter::EquipButtonPressed()
 {
 	//this will be called on every connected client, so we will have to perform checks to make sure the server is equipping
 	//weapons since the server has authority over the weapons
-	if(Combat && HasAuthority()){
-		Combat->EquipWeapon(OverlappingWeapon);
+	if(Combat){
+		if(HasAuthority()){
+			Combat->EquipWeapon(OverlappingWeapon);
+		}
+		else{
+			//we do not need to have the _Implementation here, this is just for when we are defining the function
+			ServerEquipButtonPressed();
+		}
 	}
 }
 
@@ -122,6 +128,15 @@ void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 	}
 	if(LastWeapon){
 		LastWeapon->ShowPickupWidget(false);
+	}
+}
+
+void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
+{
+	//this will be called on every connected client, so we will have to perform checks to make sure the server is equipping
+	//weapons since the server has authority over the weapons
+	if(Combat){
+		Combat->EquipWeapon(OverlappingWeapon);
 	}
 }
 

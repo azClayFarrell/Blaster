@@ -16,6 +16,8 @@ enum class EWeaponState : uint8
 	EWS_MAX UMETA(DisplayName = "DefaultMAX")
 };
 
+class USphereComponent;
+
 UCLASS()
 class BLASTER_API AWeapon : public AActor
 {
@@ -30,7 +32,13 @@ public:
 
 	void ShowPickupWidget(bool bShowWidget);
 
-	FORCEINLINE void SetWeaponState(EWeaponState State) {WeaponState = State;}
+	void SetWeaponState(EWeaponState State);
+
+	//This is where we register variables to be replicated
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	//I think there was an issue with there being an inline declaration on USphere since it wasn't included so I forward declared it
+	FORCEINLINE USphereComponent* GetAreaSphere() const {return AreaSphere;}
 
 protected:
 	// Called when the game starts or when spawned
@@ -59,8 +67,11 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	class USphereComponent* AreaSphere;
 
-	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
+	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "Weapon Properties")
 	EWeaponState WeaponState;
+
+	UFUNCTION()
+	void OnRep_WeaponState();
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	class UWidgetComponent* PickupWidget;
