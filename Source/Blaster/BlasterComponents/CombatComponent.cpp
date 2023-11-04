@@ -13,6 +13,8 @@ UCombatComponent::UCombatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
+	BaseWalkSpeed = 600.f;
+	AimWalkSpeed = 450.f;
 }
 
 void UCombatComponent::EquipWeapon(AWeapon *WeaponToEquip)
@@ -47,7 +49,9 @@ void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	
+	if(Character){
+		Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+	}
 }
 
 void UCombatComponent::SetAiming(bool bIsAiming)
@@ -62,11 +66,21 @@ void UCombatComponent::SetAiming(bool bIsAiming)
 
 	//FINAL SOLUTION: see notes as to why with link to reference graph in documentation
 	ServerSetAiming(bIsAiming);
+
+	//this is to set the max walk speed when aiming
+	if(Character){
+		Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
+	}
 }
 
 void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
 {
 	bAiming = bIsAiming;
+
+	//this is to set the max walk speed when aiming on the server so that the server doesn't try to adjust our position
+	if(Character){
+		Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
+	}
 }
 
 void UCombatComponent::OnRep_EquippedWeapon(){
