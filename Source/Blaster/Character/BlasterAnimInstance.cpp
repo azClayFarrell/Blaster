@@ -70,4 +70,8 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
     const float Target = Delta.Yaw / DeltaTime;
     const float Interp = FMath::FInterpTo(Lean, Target, DeltaTime, 6.f);
     Lean = FMath::Clamp(Interp, -90.f, 90.f);
+
+    //setting the aim offsets for Yaw and Pitch using the methods we made in the blaster character header file
+    AO_Yaw = BlasterCharacter->GetAO_Yaw();
+    AO_Pitch = BlasterCharacter->GetAO_Pitch();
 }
