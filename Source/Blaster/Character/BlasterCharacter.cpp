@@ -186,6 +186,24 @@ void ABlasterCharacter::AimOffset(float DeltaTime)
 	}
 
 	AO_Pitch = GetBaseAimRotation().Pitch;
+
+	// //this was used to debug the problem we were having
+	// UE_LOG(LogTemp, Warning, TEXT("AO_Pitch: %f"), AO_Pitch);
+	// //this was used to check the client controlled pawn values as they are on the server, which is the root of the issue
+	// if(!HasAuthority() && !IsLocallyControlled()){
+	// 	UE_LOG(LogTemp, Warning, TEXT("AO_Pitch: %f"), AO_Pitch);
+	// }
+
+	//this is the fix for the buggy aiming. Since we know it does not occer on pawns we are controlling, we only need to
+	//adjust for pawns we are not locally controlling
+	if(AO_Pitch > 90.f && !IsLocallyControlled()){
+		//map pitch from [270, 360) to [-90, 0)
+		//this will fix the jerky up and down aiming that we saw when using the aim offsets in multiplayer
+		FVector2D InRange(270.f, 360.f);
+		FVector2D OutRange(-90.f, 0.f);
+		//this is the method that actually does the mapping of one range to another
+		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch);
+	}
 }
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
