@@ -40,6 +40,8 @@ public:
 	//I think there was an issue with there being an inline declaration on USphere since it wasn't included so I forward declared it
 	FORCEINLINE USphereComponent* GetAreaSphere() const {return AreaSphere;}
 
+	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

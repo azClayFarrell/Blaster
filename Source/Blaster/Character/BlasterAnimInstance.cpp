@@ -5,6 +5,7 @@
 #include "BlasterCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Blaster/Weapon/Weapon.h"
 
 void UBlasterAnimInstance::NativeInitializeAnimation()
 {
@@ -37,6 +38,8 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
     bIsAccelerating = BlasterCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f ? true : false;
 
     bWeaponEquipped = BlasterCharacter->IsWeaponEquipped();
+
+    EquippedWeapon = BlasterCharacter->GetEquippedWeapon();
 
     bIsCrouched = BlasterCharacter->bIsCrouched;
 
@@ -74,4 +77,18 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
     //setting the aim offsets for Yaw and Pitch using the methods we made in the blaster character header file
     AO_Yaw = BlasterCharacter->GetAO_Yaw();
     AO_Pitch = BlasterCharacter->GetAO_Pitch();
+
+    //if we have a weapon equipped, it is a valid weapon, the weapon has a mesh, and the blaster character has a mesh
+    if(bWeaponEquipped && EquippedWeapon && EquippedWeapon->GetWeaponMesh() && BlasterCharacter->GetMesh()){
+        //this gets the socket at which we would like to place the left hand
+        LeftHandTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("LeftHandSocket"), ERelativeTransformSpace::RTS_World);
+
+        //setup Out Parameters for getting the bone space on the skeleton of the mesh
+        FVector OutPosition;
+        FRotator OutRotation;
+        //sets the left hand SOCKET to be relative to the position of the right hand, since they should be a constant value apart
+        BlasterCharacter->GetMesh()->TransformToBoneSpace(FName("hand_r"), LeftHandTransform.GetLocation(), FRotator::ZeroRotator, OutPosition, OutRotation);
+        LeftHandTransform.SetLocation(OutPosition);
+        LeftHandTransform.SetRotation(FQuat(OutRotation));
+    }
 }
