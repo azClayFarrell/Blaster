@@ -92,14 +92,33 @@ void UCombatComponent::OnRep_EquippedWeapon(){
 
 void UCombatComponent::FireButtonPressed(bool bPressed)
 {
+	//We don't want to replicate this variable to the server so we are going to use Multicast RPCs to tell clients to fire the weapons
 	bFireButtonPressed = bPressed;
 
+	if(bFireButtonPressed){
+		// call the fire function on the server if it's true that the client pressed the fire button;
+		// if only this function call is included and the logic for firing was in this function alone, 
+		// the firing client and all other clients will not see the weapon fire, but the server will.
+		// However, we moved the code from the body of this function into the Multicast function, and
+		// we are calling the multicast function from the body of ServerFire;
+		ServerFire();
+	}
+}
+
+void UCombatComponent::ServerFire_Implementation()
+{
+	//calling this Multicast RPC will make the server pawn fire and propagate the firing of the weapon to all clients
+	MulticastFire();
+}
+
+void UCombatComponent::MulticastFire_Implementation(){
 	//we need to check this since we are wanting to call the fire function on the Weapon class
 	if(EquippedWeapon == nullptr){
 		return;
 	}
 
-	if(Character && bFireButtonPressed){
+	if(Character){
+		//bAiming is replicated, so all clients will know if we are aiming or not
 		Character->PlayFireMontage(bAiming);
 		EquippedWeapon->Fire();
 	}
