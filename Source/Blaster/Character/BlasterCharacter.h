@@ -28,6 +28,8 @@ public:
 	//we need this so that we know when we can use our Combat component since it is guaranteed to be available after this
 	virtual void PostInitializeComponents() override;
 
+	void PlayFireMontage(bool bAiming);
+
 
 protected:
 	// Called when the game starts or when spawned
@@ -46,6 +48,9 @@ protected:
 	void AimOffset(float DeltaTime);
 
 	virtual void Jump() override;
+
+	void FireButtonPressed();
+	void FireButtonReleased();
 	
 
 private:
@@ -79,6 +84,10 @@ private:
 
 	ETurningInPlace TurningInPlace;
 	void TurnInPlace(float DeltaTime);
+
+	//we have to set this from the character blueprint
+	UPROPERTY(EditAnywhere, Category = Combat)
+	class UAnimMontage* FireWeaponMontage;
 
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
