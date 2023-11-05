@@ -93,8 +93,15 @@ void UCombatComponent::OnRep_EquippedWeapon(){
 void UCombatComponent::FireButtonPressed(bool bPressed)
 {
 	bFireButtonPressed = bPressed;
+
+	//we need to check this since we are wanting to call the fire function on the Weapon class
+	if(EquippedWeapon == nullptr){
+		return;
+	}
+
 	if(Character && bFireButtonPressed){
 		Character->PlayFireMontage(bAiming);
+		EquippedWeapon->Fire();
 	}
 }
 

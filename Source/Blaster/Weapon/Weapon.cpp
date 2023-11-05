@@ -6,6 +6,8 @@
 #include "Components/WidgetComponent.h"
 #include "Blaster/Character/BlasterCharacter.h"
 #include "Net/UnrealNetwork.h"
+#include "Animation/AnimationAsset.h"
+#include "Components/SkeletalMeshComponent.h"
 
 // Sets default values
 AWeapon::AWeapon()
@@ -45,6 +47,14 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeP
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AWeapon, WeaponState);
+}
+
+void AWeapon::Fire()
+{
+	if(FireAnimation){
+		//we don't want to loop the animation we are wanting to play, so we will pass false for looping
+		WeaponMesh->PlayAnimation(FireAnimation, false);
+	}
 }
 
 // Called when the game starts or when spawned
