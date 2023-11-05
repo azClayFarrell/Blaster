@@ -43,6 +43,8 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
 
     bIsCrouched = BlasterCharacter->bIsCrouched;
 
+    TurningInPlace = BlasterCharacter->GetTurningInPlace();
+
     bAiming = BlasterCharacter->IsAiming();
 
     //this is a global rotation and is not based on the character
