@@ -8,10 +8,11 @@
 #include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 UCombatComponent::UCombatComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
 
 	BaseWalkSpeed = 600.f;
 	AimWalkSpeed = 450.f;
@@ -124,9 +125,40 @@ void UCombatComponent::MulticastFire_Implementation(){
 	}
 }
 
+void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult){
+	//this will get the size of the view port so that we can find the middle of the screen
+	FVector2D ViewportSize;
+	if(GEngine && GEngine->GameViewport){
+		GEngine->GameViewport->GetViewportSize(ViewportSize);
+	}
+
+	//set the Crosshair location as the center of the viewport in world space
+	FVector2D CrosshairLocation(ViewportSize.X / 2.f, ViewportSize.Y / 2.f);
+	FVector OutCrosshairWorldPosition;
+	FVector OutCrosshairWorldDirection;
+	bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(UGameplayStatics::GetPlayerController(this, 0), CrosshairLocation, OutCrosshairWorldPosition, OutCrosshairWorldDirection);
+
+	if(bScreenToWorld){
+		FVector Start = OutCrosshairWorldPosition;
+		FVector End = Start + OutCrosshairWorldDirection * TRACE_LENGTH;
+
+		GetWorld()->LineTraceSingleByChannel(TraceHitResult, Start, End, ECollisionChannel::ECC_Visibility);
+
+		//if we hit nothing in the hit result, then we will just set the impact point as the End point
+		if(!TraceHitResult.bBlockingHit){
+			TraceHitResult.ImpactPoint = End;
+		}
+		else{
+			DrawDebugSphere(GetWorld(), TraceHitResult.ImpactPoint, 12.f, 12, FColor::Red);
+		}
+	}
+}
+
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	FHitResult OutHitResult;
+	TraceUnderCrosshairs(OutHitResult);
 }
 
