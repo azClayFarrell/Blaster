@@ -5,6 +5,7 @@
 #include "Components/BoxComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 AProjectile::AProjectile()
 {
@@ -37,6 +38,16 @@ void AProjectile::BeginPlay()
 																 EAttachLocation::KeepWorldPosition //so that the bullet doesn't continue to rotate with the gun after firing
 																);
 	}
+	if(HasAuthority()){
+		CollisionBox->OnComponentHit.AddDynamic(this, &ThisClass::OnHit);
+	}
+}
+
+void AProjectile::OnHit(UPrimitiveComponent *HitComp, AActor *OtherActor, UPrimitiveComponent *OtherComp, FVector NormalImpulse, const FHitResult &Hit)
+{
+	//Destroy will end up calling our override of Destroyed
+	//THIS IS IMPORTANT because it will propagate the particles and sounds down to the clients
+	Destroy();
 }
 
 void AProjectile::Tick(float DeltaTime)
@@ -45,3 +56,16 @@ void AProjectile::Tick(float DeltaTime)
 
 }
 
+void AProjectile::Destroyed()
+{
+	Super::Destroyed();
+
+	//this function is being propagated down to clients since we are calling it on the server
+
+	if(ImpactParticles){
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorTransform());
+	}
+	if(ImpactSound){
+		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
+	}
+}
