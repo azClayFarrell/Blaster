@@ -42,7 +42,7 @@ public:
 
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
 
-	void Fire();
+	virtual void Fire(const FVector& HitTarget);
 
 protected:
 	// Called when the game starts or when spawned

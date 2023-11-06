@@ -49,7 +49,7 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeP
 	DOREPLIFETIME(AWeapon, WeaponState);
 }
 
-void AWeapon::Fire()
+void AWeapon::Fire(const FVector& HitTarget)
 {
 	if(FireAnimation){
 		//we don't want to loop the animation we are wanting to play, so we will pass false for looping

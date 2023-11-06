@@ -121,7 +121,7 @@ void UCombatComponent::MulticastFire_Implementation(){
 	if(Character){
 		//bAiming is replicated, so all clients will know if we are aiming or not
 		Character->PlayFireMontage(bAiming);
-		EquippedWeapon->Fire();
+		EquippedWeapon->Fire(HitTarget);
 	}
 }
 
@@ -147,8 +147,11 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult){
 		//if we hit nothing in the hit result, then we will just set the impact point as the End point
 		if(!TraceHitResult.bBlockingHit){
 			TraceHitResult.ImpactPoint = End;
+			//making sure our new FVector for HitTarget isn't null
+			HitTarget = End;
 		}
 		else{
+			HitTarget = TraceHitResult.ImpactPoint;
 			DrawDebugSphere(GetWorld(), TraceHitResult.ImpactPoint, 12.f, 12, FColor::Red);
 		}
 	}
