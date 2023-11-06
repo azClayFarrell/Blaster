@@ -97,22 +97,21 @@ void UCombatComponent::FireButtonPressed(bool bPressed)
 	bFireButtonPressed = bPressed;
 
 	if(bFireButtonPressed){
-		// call the fire function on the server if it's true that the client pressed the fire button;
-		// if only this function call is included and the logic for firing was in this function alone, 
-		// the firing client and all other clients will not see the weapon fire, but the server will.
-		// However, we moved the code from the body of this function into the Multicast function, and
-		// we are calling the multicast function from the body of ServerFire;
-		ServerFire();
+		// this functionality was changed enough to get rid of the original comment
+		//now we are just interested in the impact point we get back from doing our line trace to replicate it over the network
+		FHitResult HitResult;
+		TraceUnderCrosshairs(HitResult);
+		ServerFire(HitResult.ImpactPoint);
 	}
 }
 
-void UCombatComponent::ServerFire_Implementation()
+void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
 	//calling this Multicast RPC will make the server pawn fire and propagate the firing of the weapon to all clients
-	MulticastFire();
+	MulticastFire(TraceHitTarget);
 }
 
-void UCombatComponent::MulticastFire_Implementation(){
+void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget){
 	//we need to check this since we are wanting to call the fire function on the Weapon class
 	if(EquippedWeapon == nullptr){
 		return;
@@ -121,7 +120,7 @@ void UCombatComponent::MulticastFire_Implementation(){
 	if(Character){
 		//bAiming is replicated, so all clients will know if we are aiming or not
 		Character->PlayFireMontage(bAiming);
-		EquippedWeapon->Fire(HitTarget);
+		EquippedWeapon->Fire(TraceHitTarget);
 	}
 }
 
@@ -145,14 +144,9 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult){
 		GetWorld()->LineTraceSingleByChannel(TraceHitResult, Start, End, ECollisionChannel::ECC_Visibility);
 
 		//if we hit nothing in the hit result, then we will just set the impact point as the End point
+		//if we do not have this with our current implementation, the bullet will fly to the world origin if we hit nothing
 		if(!TraceHitResult.bBlockingHit){
 			TraceHitResult.ImpactPoint = End;
-			//making sure our new FVector for HitTarget isn't null
-			HitTarget = End;
-		}
-		else{
-			HitTarget = TraceHitResult.ImpactPoint;
-			DrawDebugSphere(GetWorld(), TraceHitResult.ImpactPoint, 12.f, 12, FColor::Red);
 		}
 	}
 }
@@ -160,8 +154,5 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult){
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	FHitResult OutHitResult;
-	TraceUnderCrosshairs(OutHitResult);
 }
 
