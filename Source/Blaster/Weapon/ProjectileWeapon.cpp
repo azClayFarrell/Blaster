@@ -9,6 +9,11 @@ void AProjectileWeapon::Fire(const FVector &HitTarget)
 {
     Super::Fire(HitTarget);
 
+    //this is to make sure we are only spawning the projectile on the server
+    if(!HasAuthority()){
+        return;
+    }
+
     //this might be the ProjectileWeapon?
     APawn* InstigatorPawn = Cast<APawn>(GetOwner());
     //GetWeaponMesh is a parent function
