@@ -150,6 +150,14 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult){
 
 	if(bScreenToWorld){
 		FVector Start = OutCrosshairWorldPosition;
+
+		if(Character){
+			float DistanceToCharacter = (Character->GetActorLocation() - Start).Size();
+			Start += OutCrosshairWorldDirection * (DistanceToCharacter + 100.f);
+			// // this is a debug sphere to see where the start location would be for the line trace
+			// DrawDebugSphere(GetWorld(), Start, 16.f, 12, FColor::Red, false);
+		}
+
 		FVector End = Start + OutCrosshairWorldDirection * TRACE_LENGTH;
 
 		GetWorld()->LineTraceSingleByChannel(TraceHitResult, Start, End, ECollisionChannel::ECC_Visibility);
