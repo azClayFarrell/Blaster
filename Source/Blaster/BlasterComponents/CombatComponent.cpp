@@ -10,7 +10,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Blaster/PlayerController/BlasterPlayerController.h"
-#include "Blaster/HUD/BlasterHUD.h"
 #include "Camera/CameraComponent.h"
 
 UCombatComponent::UCombatComponent()
@@ -160,6 +159,13 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult){
 		if(!TraceHitResult.bBlockingHit){
 			TraceHitResult.ImpactPoint = End;
 		}
+
+		if(TraceHitResult.GetActor() && TraceHitResult.GetActor()->Implements<UInteractWithCrosshairsInterface>()){
+			HUDPackage.CrosshairColor = FLinearColor::Red;
+		}
+		else{
+			HUDPackage.CrosshairColor = FLinearColor::White;
+		}
 	}
 }
 
@@ -174,7 +180,7 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 		//we will attempt to cast the HUD to the type we want to use if the current value is null
 		HUD = HUD == nullptr ? Cast<ABlasterHUD>(Controller->GetHUD()) : HUD;
 		if(HUD){
-			FHUDPackage HUDPackage;
+			
 			//making the FHUDPackage using this weapons information about the crosshairs it uses
 			if(EquippedWeapon){
 				HUDPackage.CrosshairCenter = EquippedWeapon->CrosshairCenter;
