@@ -11,6 +11,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Blaster/PlayerController/BlasterPlayerController.h"
 #include "Camera/CameraComponent.h"
+#include "TimerManager.h"
 
 UCombatComponent::UCombatComponent()
 {
@@ -103,16 +104,21 @@ void UCombatComponent::FireButtonPressed(bool bPressed)
 	//We don't want to replicate this variable to the server so we are going to use Multicast RPCs to tell clients to fire the weapons
 	bFireButtonPressed = bPressed;
 
-	if(bFireButtonPressed){
-		// this functionality was changed enough to get rid of the original comment
-		//now we are just interested in the impact point we get back from doing our line trace to replicate it over the network
-		FHitResult HitResult;
-		TraceUnderCrosshairs(HitResult);
-		ServerFire(HitResult.ImpactPoint);
+	//fix for bug when firing the weapon
+	if(EquippedWeapon && bFireButtonPressed){
+		Fire();
+	}
+}
 
+void UCombatComponent::Fire()
+{
+	if(bCanFire){
+		bCanFire = false;
+		ServerFire(HitTarget);
 		if(EquippedWeapon){
 			CrosshairShootingFactor = 0.75f;
 		}
+		StartFireTimer();
 	}
 }
 
@@ -257,6 +263,27 @@ void UCombatComponent::InterpFOV(float DeltaTime)
 	//updating the camera after you determine the FOV to be set
 	if(Character && Character->GetFollowCamera()){
 		Character->GetFollowCamera()->SetFieldOfView(CurrentFOV);
+	}
+}
+
+void UCombatComponent::StartFireTimer()
+{
+	if(EquippedWeapon == nullptr || Character == nullptr){
+		return;
+	}
+
+	Character->GetWorldTimerManager().SetTimer(FireTimer, this, &ThisClass::FireTimerFinished, EquippedWeapon->FireDelay);
+}
+
+void UCombatComponent::FireTimerFinished()
+{
+	if(EquippedWeapon == nullptr){
+		return;
+	}
+
+	bCanFire = true;
+	if(bFireButtonPressed && EquippedWeapon->bAutomatic){
+		Fire();
 	}
 }
 
