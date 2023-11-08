@@ -44,6 +44,8 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
     bIsCrouched = BlasterCharacter->bIsCrouched;
 
     TurningInPlace = BlasterCharacter->GetTurningInPlace();
+    
+    bRotateRootBone = BlasterCharacter->ShouldRotateRootBone();
 
     bAiming = BlasterCharacter->IsAiming();
 

@@ -88,6 +88,13 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &Ou
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
 }
 
+void ABlasterCharacter::OnRep_ReplicatedMovement()
+{
+	Super::OnRep_ReplicatedMovement();
+	SimProxiesTurn();
+	TimeSinceLastMovementReplication = 0.f;
+}
+
 void ABlasterCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
@@ -209,14 +216,14 @@ void ABlasterCharacter::AimOffset(float DeltaTime)
 	if(Combat && Combat->EquippedWeapon == nullptr){
 		return;
 	}
-	//gets the speed of the character and if they are falling
-	FVector Velocity = GetVelocity();
-	Velocity.Z = 0.f;
-	float Speed = Velocity.Size();
+
+	float Speed = CalculateSpeed();
+
 	bool bIsInAir = GetCharacterMovement()->IsFalling();
 
 	//if the character is standing still and not jumping
 	if(Speed == 0.f && !bIsInAir){
+		bRotateRootBone = true;
 		FRotator CurrentAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		//order in which you pass the rotators here is important. If you pass the rotators in the other way, the yaw direction will be flipped the wrong way
 		FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation);
@@ -232,6 +239,7 @@ void ABlasterCharacter::AimOffset(float DeltaTime)
 
 	//if character is running or jumping
 	if(Speed > 0.f || bIsInAir){
+		bRotateRootBone = false;
 		StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		AO_Yaw = 0.f;
 		bUseControllerRotationYaw = true;
@@ -247,6 +255,12 @@ void ABlasterCharacter::AimOffset(float DeltaTime)
 	// 	UE_LOG(LogTemp, Warning, TEXT("AO_Pitch: %f"), AO_Pitch);
 	// }
 
+	CalculateAO_Pitch();	
+}
+
+void ABlasterCharacter::CalculateAO_Pitch()
+{
+	AO_Pitch = GetBaseAimRotation().Pitch;
 	//this is the fix for the buggy aiming. Since we know it does not occer on pawns we are controlling, we only need to
 	//adjust for pawns we are not locally controlling
 	if(AO_Pitch > 90.f && !IsLocallyControlled()){
@@ -257,6 +271,44 @@ void ABlasterCharacter::AimOffset(float DeltaTime)
 		//this is the method that actually does the mapping of one range to another
 		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch);
 	}
+}
+
+void ABlasterCharacter::SimProxiesTurn()
+{
+	if(Combat == nullptr || Combat->EquippedWeapon == nullptr){
+		return;
+	}
+
+	bRotateRootBone = false;
+
+	//made this a helper function
+	float Speed = CalculateSpeed();
+
+	//cancels the foot sliding if we start moving when we turn sharply and start running
+	if(Speed > 0.f){
+		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		return;
+	}
+
+	ProxyRotationLastFrame = ProxyRotation;
+	ProxyRotation = GetActorRotation();
+	ProxyYaw = UKismetMathLibrary::NormalizedDeltaRotator(ProxyRotation, ProxyRotationLastFrame).Yaw;
+
+	// UE_LOG(LogTemp, Warning, TEXT("ProxyYaw: %f"), ProxyYaw);
+
+	if(FMath::Abs(ProxyYaw) > TurnThreshold){
+		if(ProxyYaw > TurnThreshold){
+			TurningInPlace = ETurningInPlace::ETIP_Right;
+		}
+		else if(ProxyYaw < -TurnThreshold){
+			TurningInPlace = ETurningInPlace::ETIP_Left;
+		}
+		else{
+			TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		}
+		return;
+	}
+	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 }
 
 void ABlasterCharacter::Jump()
@@ -349,6 +401,13 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 	}
 }
 
+float ABlasterCharacter::CalculateSpeed()
+{
+	FVector Velocity = GetVelocity();
+	Velocity.Z = 0.f;
+	return Velocity.Size();
+}
+
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)
 {
 	if(OverlappingWeapon){
@@ -395,7 +454,18 @@ void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	AimOffset(DeltaTime);
+	//we are using the > sign here because the index in which simulated proxy is located in the Enumeration is the lowest.
+	//we are checking this here so we can prevent rotating the root bone for simulated proxies
+	if(GetLocalRole() > ENetRole::ROLE_SimulatedProxy && IsLocallyControlled()){
+		AimOffset(DeltaTime);
+	}
+	else{
+		TimeSinceLastMovementReplication += DeltaTime;
+		if(TimeSinceLastMovementReplication > 0.25f){
+			OnRep_ReplicatedMovement();
+		}
+		CalculateAO_Pitch();
+	}
 
 	HideCameraIfCharacterClose();
 }
