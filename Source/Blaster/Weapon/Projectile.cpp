@@ -48,13 +48,6 @@ void AProjectile::BeginPlay()
 
 void AProjectile::OnHit(UPrimitiveComponent *HitComp, AActor *OtherActor, UPrimitiveComponent *OtherComp, FVector NormalImpulse, const FHitResult &Hit)
 {
-	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
-
-	if(BlasterCharacter){
-		//playing the hit react montage if this character was valid and we have a montage to play
-		BlasterCharacter->MulticastHit();
-	}
-
 	//Destroy will end up calling our override of Destroyed
 	//THIS IS IMPORTANT because it will propagate the particles and sounds down to the clients
 	Destroy();

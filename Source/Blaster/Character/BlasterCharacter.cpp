@@ -56,9 +56,12 @@ void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	BlasterPlayerController = Cast<ABlasterPlayerController>(Controller);
-	if(BlasterPlayerController){
-		BlasterPlayerController->SetHUDHealth(CurrentHealth, MaxHealth);
+	UpdateHUDHealth();
+
+	//only bind this function on the server so we could only take damage on the server
+	if(HasAuthority()){
+		//this is a delegate inherited from Actor.h
+		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
 	}
 }
 
@@ -139,6 +142,30 @@ void ABlasterCharacter::PlayHitReactMontage()
 		FName SectionName("FromFront");
 		// SectionName = bAiming ? FName("RifleAim") : FName("RifleHip");
 		AnimInstance->Montage_JumpToSection(SectionName);
+	}
+}
+
+/**
+ * @brief this is a callback function for taking damage when shot
+ * 
+ * @param DamagedActor 
+ * @param Damage 
+ * @param DamageType 
+ * @param InstigatorController 
+ * @param DamageCaused 
+ */
+void ABlasterCharacter::ReceiveDamage(AActor *DamagedActor, float Damage, const UDamageType *DamageType, AController *InstigatorController, AActor *DamageCaused)
+{
+	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.f, MaxHealth);
+	UpdateHUDHealth();
+	PlayHitReactMontage();
+}
+
+void ABlasterCharacter::UpdateHUDHealth()
+{
+	BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+	if(BlasterPlayerController){
+		BlasterPlayerController->SetHUDHealth(CurrentHealth, MaxHealth);
 	}
 }
 
@@ -363,11 +390,6 @@ void ABlasterCharacter::TurnInPlace(float DeltaTime){
 	}
 }
 
-void ABlasterCharacter::MulticastHit_Implementation()
-{
-	PlayHitReactMontage();
-}
-
 void ABlasterCharacter::HideCameraIfCharacterClose()
 {
 	if(!IsLocallyControlled()){
@@ -416,6 +438,8 @@ float ABlasterCharacter::CalculateSpeed()
 
 void ABlasterCharacter::OnRep_Health()
 {
+	UpdateHUDHealth();
+	PlayHitReactMontage();
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon *Weapon)
