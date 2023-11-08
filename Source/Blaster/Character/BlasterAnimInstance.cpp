@@ -47,6 +47,8 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaTime)
     
     bRotateRootBone = BlasterCharacter->ShouldRotateRootBone();
 
+    bElimmed = BlasterCharacter->IsElimmed();
+
     bAiming = BlasterCharacter->IsAiming();
 
     //this is a global rotation and is not based on the character
