@@ -31,6 +31,8 @@ public:
 
 	void PlayFireMontage(bool bAiming);
 
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastHit();
 
 protected:
 	// Called when the game starts or when spawned
@@ -52,7 +54,8 @@ protected:
 
 	void FireButtonPressed();
 	void FireButtonReleased();
-	
+
+	void PlayHitReactMontage();
 
 private:
 
@@ -89,6 +92,9 @@ private:
 	//we have to set this from the character blueprint
 	UPROPERTY(EditAnywhere, Category = Combat)
 	class UAnimMontage* FireWeaponMontage;
+
+	UPROPERTY(EditAnywhere, Category = Combat)
+	UAnimMontage* HitReactMontage;
 
 	void HideCameraIfCharacterClose();
 
