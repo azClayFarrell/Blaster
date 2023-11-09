@@ -19,6 +19,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Blaster/PlayerState/BlasterPlayerState.h"
 
 // Sets default values
 ABlasterCharacter::ABlasterCharacter()
@@ -268,6 +269,16 @@ void ABlasterCharacter::UpdateHUDHealth()
 	BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
 	if(BlasterPlayerController){
 		BlasterPlayerController->SetHUDHealth(CurrentHealth, MaxHealth);
+	}
+}
+
+void ABlasterCharacter::PollInit()
+{
+	if(BlasterPlayerState == nullptr){
+		BlasterPlayerState = GetPlayerState<ABlasterPlayerState>();
+		if(BlasterPlayerState){
+			BlasterPlayerState->AddToScore(0.f);
+		}
 	}
 }
 
@@ -604,4 +615,5 @@ void ABlasterCharacter::Tick(float DeltaTime)
 	}
 
 	HideCameraIfCharacterClose();
+	PollInit();
 }
