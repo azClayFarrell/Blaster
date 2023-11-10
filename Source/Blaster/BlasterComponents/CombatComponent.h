@@ -129,4 +129,9 @@ private:
 
 	//this is a key value pair, with the key as a weapon type and the value as an integer
 	TMap<EWeaponType, int32> CarriedAmmoMap;
+
+	UPROPERTY(EditAnywhere)
+	int32 StartingARAmmo = 30;
+
+	void InitializeCarriedAmmo();
 };
