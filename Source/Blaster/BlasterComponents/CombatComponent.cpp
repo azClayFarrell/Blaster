@@ -54,6 +54,13 @@ void UCombatComponent::EquipWeapon(AWeapon *WeaponToEquip)
 	Character->bUseControllerRotationYaw = true;
 }
 
+void UCombatComponent::Reload()
+{
+	if(CarriedAmmo > 0){
+		ServerReload();
+	}
+}
+
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -269,6 +276,13 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 			HUD->SetHUDPackage(HUDPackage);
 		}
 	}
+}
+
+void UCombatComponent::ServerReload_Implementation()
+{
+	if(Character == nullptr) { return; }
+
+	Character->PlayReloadMontage();
 }
 
 void UCombatComponent::InterpFOV(float DeltaTime)
