@@ -147,6 +147,9 @@ private:
 	UFUNCTION()
 	void OnRep_Health();
 
+	//this was probably causing the bug from the last lecture. I missed this UPROPERTY() while I was going through them
+	//yeah this seems to be why
+	UPROPERTY()
 	class ABlasterPlayerController* BlasterPlayerController;
 
 	bool bElimmed = false;
