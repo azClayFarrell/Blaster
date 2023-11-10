@@ -115,15 +115,15 @@ void UCombatComponent::FireButtonPressed(bool bPressed)
 	//We don't want to replicate this variable to the server so we are going to use Multicast RPCs to tell clients to fire the weapons
 	bFireButtonPressed = bPressed;
 
-	//fix for bug when firing the weapon
-	if(EquippedWeapon && bFireButtonPressed){
+	// we are now checking if we have a weapon in the CanFire function so we don't need to check it here anymore
+	if(bFireButtonPressed){
 		Fire();
 	}
 }
 
 void UCombatComponent::Fire()
 {
-	if(bCanFire){
+	if(CanFire()){
 		bCanFire = false;
 		ServerFire(HitTarget);
 		if(EquippedWeapon){
@@ -296,6 +296,12 @@ void UCombatComponent::FireTimerFinished()
 	if(bFireButtonPressed && EquippedWeapon->bAutomatic){
 		Fire();
 	}
+}
+
+bool UCombatComponent::CanFire()
+{
+    if(EquippedWeapon == nullptr) {return false;}
+	return !EquippedWeapon->IsEmpty() || !bCanFire;
 }
 
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

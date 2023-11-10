@@ -77,7 +77,12 @@ void AWeapon::SetHUDAmmo()
 	}
 }
 
-void AWeapon::Fire(const FVector& HitTarget)
+bool AWeapon::IsEmpty()
+{
+    return Ammo <= 0;
+}
+
+void AWeapon::Fire(const FVector &HitTarget)
 {
 	if(FireAnimation){
 		//we don't want to loop the animation we are wanting to play, so we will pass false for looping
@@ -209,7 +214,7 @@ void AWeapon::OnRep_Ammo()
 
 void AWeapon::SpendRound()
 {
-	--Ammo;
+	Ammo = FMath::Clamp(Ammo - 1, 0, MagCapacity);
 	SetHUDAmmo();
 }
 
