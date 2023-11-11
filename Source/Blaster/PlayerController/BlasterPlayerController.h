@@ -30,6 +30,7 @@ public:
 	virtual float GetServerTime(); //Synced with server world clock
 	virtual void ReceivedPlayer() override; // Sync with server clock as soon as possible
 	void OnMatchStateSet(FName State);
+	void HandleMatchHasStarted();
 
 protected:
 
