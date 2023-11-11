@@ -6,8 +6,10 @@
 #include "Blaster/HUD/CharacterOverlay.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
-#include "Blaster/Character/BlasterCharacter.h"
 #include "Net/UnrealNetwork.h"
+#include "Blaster/Character/BlasterCharacter.h"
+#include "Blaster/GameMode/BlasterGameMode.h"
+#include "Blaster/PlayerState/BlasterPlayerState.h"
 
 void ABlasterPlayerController::BeginPlay()
 {
@@ -23,6 +25,21 @@ void ABlasterPlayerController::SetHUDTime()
         SetHUDMatchCountdown(MatchTime - GetServerTime());
     }
     CountdownInt = SecondsLeft;
+}
+
+void ABlasterPlayerController::PollInit()
+{
+    //this is needing to be done because the overlay does not yet exist when we transition into the map
+    if(CharacterOverlay == nullptr){
+        if(BlasterHUD && BlasterHUD->CharacterOverlay){
+            CharacterOverlay = BlasterHUD->CharacterOverlay;
+            if(CharacterOverlay){
+                SetHUDHealth(HUDCurrentHealth, HUDMaxHealth);
+                SetHUDScore(HUDScore);
+                SetHUDDefeats(HUDDefeats);
+            }
+        }
+    }
 }
 
 void ABlasterPlayerController::ServerRequestServerTime_Implementation(float TimeOfClientRequest)
@@ -54,6 +71,16 @@ void ABlasterPlayerController::CheckTimeSync(float DeltaTime)
     }
 }
 
+void ABlasterPlayerController::OnRep_MatchState()
+{
+    if(MatchState == MatchState::InProgress){
+        BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
+        if(BlasterHUD){
+            BlasterHUD->AddCharacterOverlay();
+        }
+    }
+}
+
 void ABlasterPlayerController::SetHUDHealth(float CurrentHealth, float MaxHealth)
 {
     //making sure that we are trying to get the blaster hud before using it
@@ -68,6 +95,11 @@ void ABlasterPlayerController::SetHUDHealth(float CurrentHealth, float MaxHealth
         FString HealthText = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(CurrentHealth), FMath::CeilToInt(MaxHealth));
         BlasterHUD->CharacterOverlay->HealthText->SetText(FText::FromString(HealthText));
     }
+    else{
+        bInitializeCharacterOverlay = true;
+        HUDCurrentHealth = CurrentHealth;
+        HUDMaxHealth = MaxHealth;
+    }
 }
 
 void ABlasterPlayerController::SetHUDScore(float Score)
@@ -81,6 +113,10 @@ void ABlasterPlayerController::SetHUDScore(float Score)
         FString ScoreText = FString::Printf(TEXT("%d"), FMath::FloorToInt(Score));
         BlasterHUD->CharacterOverlay->ScoreAmount->SetText(FText::FromString(ScoreText));
     }
+    else{
+        bInitializeCharacterOverlay = true;
+        HUDScore = Score;
+    }
 }
 
 void ABlasterPlayerController::SetHUDDefeats(int32 Defeats)
@@ -91,6 +127,10 @@ void ABlasterPlayerController::SetHUDDefeats(int32 Defeats)
     if(bHUDValid){
         FString DefeatsText = FString::Printf(TEXT("%d"), Defeats);
         BlasterHUD->CharacterOverlay->DefeatsAmount->SetText(FText::FromString(DefeatsText));
+    }
+    else{
+        bInitializeCharacterOverlay = true;
+        HUDDefeats = Defeats;
     }
 }
 
@@ -162,10 +202,30 @@ void ABlasterPlayerController::ReceivedPlayer()
     }
 }
 
+void ABlasterPlayerController::OnMatchStateSet(FName State)
+{
+    MatchState = State;
+
+    if(MatchState == MatchState::InProgress){
+        BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
+        if(BlasterHUD){
+            BlasterHUD->AddCharacterOverlay();
+        }
+    }
+}
+
 void ABlasterPlayerController::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
     SetHUDTime();
     CheckTimeSync(DeltaTime);
+    PollInit();
+}
+
+void ABlasterPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(ABlasterPlayerController, MatchState);
 }
