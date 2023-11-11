@@ -17,11 +17,40 @@ void ABlasterPlayerController::BeginPlay()
 
 void ABlasterPlayerController::SetHUDTime()
 {
-    uint32 SecondsLeft = FMath::CeilToInt(MatchTime - GetWorld()->GetTimeSeconds());
+    uint32 SecondsLeft = FMath::CeilToInt(MatchTime - GetServerTime());
     if(CountdownInt != SecondsLeft){
-        SetHUDMatchCountdown(MatchTime - GetWorld()->GetTimeSeconds());
+        SetHUDMatchCountdown(MatchTime - GetServerTime());
     }
     CountdownInt = SecondsLeft;
+}
+
+void ABlasterPlayerController::ServerRequestServerTime_Implementation(float TimeOfClientRequest)
+{
+    //this function is called from the client that is connecting
+
+    float ServerTimeOfReceipt = GetWorld()->GetTimeSeconds();
+
+    //this function is calling an RPC on the client to tell them what the time is on the server
+    ClientReportServerTime(TimeOfClientRequest, ServerTimeOfReceipt);
+}
+
+void ABlasterPlayerController::ClientReportServerTime_Implementation(float TimeOfClientRequest, float TimeServerReceivedClientRequest)
+{
+    //this function is being called by the server because this client has requested to know what the time on the server is
+
+    float RoundTripTime = GetWorld()->GetTimeSeconds() - TimeOfClientRequest;
+    float CurrentServerTime = TimeServerReceivedClientRequest + (0.5f * RoundTripTime);
+    ClientServerDelta = CurrentServerTime - GetWorld()->GetTimeSeconds();
+}
+
+void ABlasterPlayerController::CheckTimeSync(float DeltaTime)
+{
+    TimeSyncRunningTime += DeltaTime;
+    if(IsLocalController() && TimeSyncRunningTime > TimeSyncFrequency){
+        //this is being called every so often to resync with the server to avoid time drift
+        ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+        TimeSyncRunningTime = 0.f;
+    }
 }
 
 void ABlasterPlayerController::SetHUDHealth(float CurrentHealth, float MaxHealth)
@@ -116,9 +145,26 @@ void ABlasterPlayerController::OnPossess(APawn *InPawn)
     }
 }
 
+float ABlasterPlayerController::GetServerTime()
+{
+    if(HasAuthority()) {return GetWorld()->GetTimeSeconds();}
+    else {return GetWorld()->GetTimeSeconds() + ClientServerDelta;}
+}
+
+void ABlasterPlayerController::ReceivedPlayer()
+{
+    Super::ReceivedPlayer();
+
+    if(IsLocalController()){
+        //this is the earliest a client can request to be synced with the server that it connects to
+        ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+    }
+}
+
 void ABlasterPlayerController::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
     SetHUDTime();
+    CheckTimeSync(DeltaTime);
 }
