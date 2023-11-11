@@ -96,6 +96,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = Combat)
 	bool bAutomatic = true;
 
+	UPROPERTY(EditAnywhere)
+	class USoundCue* EquipSound;
+
 	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
 
 	FORCEINLINE int32 GetAmmo() const { return Ammo; }
