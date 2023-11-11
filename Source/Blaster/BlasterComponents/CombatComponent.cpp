@@ -67,6 +67,9 @@ void UCombatComponent::FinishReloading()
 	if(Character->HasAuthority()){
 		CombatState = ECombatState::ECS_Unoccupied;
 	}
+	if(bFireButtonPressed){
+		Fire();
+	}
 }
 
 void UCombatComponent::HandleReload()
@@ -177,11 +180,9 @@ void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& Trac
 
 void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget){
 	//we need to check this since we are wanting to call the fire function on the Weapon class
-	if(EquippedWeapon == nullptr){
-		return;
-	}
+	if(EquippedWeapon == nullptr) {return;}
 
-	if(Character){
+	if(Character && CombatState == ECombatState::ECS_Unoccupied){
 		//bAiming is replicated, so all clients will know if we are aiming or not
 		Character->PlayFireMontage(bAiming);
 		EquippedWeapon->Fire(TraceHitTarget);
@@ -344,7 +345,7 @@ void UCombatComponent::FireTimerFinished()
 bool UCombatComponent::CanFire()
 {
     if(EquippedWeapon == nullptr) {return false;}
-	return !EquippedWeapon->IsEmpty() || !bCanFire;
+	return !EquippedWeapon->IsEmpty() && bCanFire && CombatState == ECombatState::ECS_Unoccupied;
 }
 
 void UCombatComponent::OnRep_CarriedAmmo()
@@ -365,6 +366,11 @@ void UCombatComponent::OnRep_CombatState()
 	switch(CombatState){
 		case ECombatState::ECS_Reloading:
 			HandleReload();
+			break;
+		case ECombatState::ECS_Unoccupied:
+			if(bFireButtonPressed){
+				Fire();
+			}
 			break;
 	}
 }
