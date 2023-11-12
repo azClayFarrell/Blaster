@@ -51,6 +51,9 @@ ABlasterCharacter::ABlasterCharacter()
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 0.f, 720.f);
 
+	//this is the fix for the bullets not spawning when the clients were not in view of the server!
+	GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+
 	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 
 	//LOOK AT NOTES FOR EXTRA INFO ON THE CONFIG FILE
@@ -251,6 +254,8 @@ void ABlasterCharacter::PlayElimMontage()
 
 void ABlasterCharacter::PlayHitReactMontage()
 {
+	//NOTE: the Combat->EquippedWeapon == nullptr part of this check is why we get no hit react when we have no weapon equipped
+	//this never changes to the end of the course and idk if he will change it anywhere else, so just take note of this
 	if(Combat == nullptr || Combat->EquippedWeapon == nullptr){
 		return;
 	}
