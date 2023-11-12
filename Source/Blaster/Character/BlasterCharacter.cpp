@@ -146,12 +146,13 @@ void ABlasterCharacter::MulticastElim_Implementation()
 	StartDissolve();
 
 	//Disable character movement
-	// GetCharacterMovement()->DisableMovement(); //stops WASD input
 	// GetCharacterMovement()->StopMovementImmediately(); //stops the character from being rotated with mouse movement
 	// if(BlasterPlayerController){
 	// 	DisableInput(BlasterPlayerController); //prevents firing
 	// }
 	bDisableGameplay = true;
+	//this will also prevent the player from falling throught the floor when they are killed during the death animation
+	GetCharacterMovement()->DisableMovement(); //stops WASD input
 	if(Combat){
 		Combat->FireButtonPressed(false);
 	}

@@ -82,4 +82,25 @@ Plugins/*/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+Builds/*
+Plugins/MultiplayerSessions/*
+
 Plugins/MultiplayerSessions/Intermediate/Build/Win64/UnrealEditor/Inc/MultiplayerSessions/UHT/Timestamp
+Builds/Windows/Manifest_DebugFiles_Win64.txt
+Builds/Windows/Manifest_NonUFSFiles_Win64.txt
+Builds/Windows/Manifest_UFSFiles_Win64.txt
+Builds/Windows/Blaster/Binaries/Win64/Blaster.pdb
+Builds/Windows/Blaster/Binaries/Win64/tbb.pdb
+Builds/Windows/Blaster/Binaries/Win64/tbbmalloc.pdb
+Builds/Windows/Blaster/Content/Paks/Blaster-Windows.pak
+Builds/Windows/Blaster/Content/Paks/Blaster-Windows.ucas
+Builds/Windows/Blaster/Content/Paks/Blaster-Windows.utoc
+Builds/Windows/Blaster/Content/Paks/global.ucas
+Builds/Windows/Blaster/Content/Paks/global.utoc
+Builds/Windows/Engine/Content/Slate/Cursor/invisible.cur
+Builds/Windows/Engine/Content/SlateDebug/Fonts/LastResort.tps
+Builds/Windows/Engine/Content/SlateDebug/Fonts/LastResort.ttf
+Builds/Windows/Engine/Extras/GPUDumpViewer/GPUDumpViewer.html
+Builds/Windows/Engine/Extras/GPUDumpViewer/OpenGPUDumpViewer.bat
+Builds/Windows/Engine/Extras/GPUDumpViewer/OpenGPUDumpViewer.sh

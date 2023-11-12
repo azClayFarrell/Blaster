@@ -24,7 +24,9 @@ protected:
 	UFUNCTION()
 	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
-	UPROPERTY()
+	// I don't know when I missed this macro, but we had to change the amount of damage the rocket does, so this needs
+	// to be EditAnywhere
+	UPROPERTY(EditAnywhere)
 	float Damage = 20.f;
 
 private:
