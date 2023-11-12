@@ -109,6 +109,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &Ou
 
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME(ABlasterCharacter, CurrentHealth);
+	DOREPLIFETIME(ABlasterCharacter, bDisableGameplay);
 }
 
 void ABlasterCharacter::OnRep_ReplicatedMovement()
@@ -145,11 +146,12 @@ void ABlasterCharacter::MulticastElim_Implementation()
 	StartDissolve();
 
 	//Disable character movement
-	GetCharacterMovement()->DisableMovement(); //stops WASD input
-	GetCharacterMovement()->StopMovementImmediately(); //stops the character from being rotated with mouse movement
-	if(BlasterPlayerController){
-		DisableInput(BlasterPlayerController); //prevents firing
-	}
+	// GetCharacterMovement()->DisableMovement(); //stops WASD input
+	// GetCharacterMovement()->StopMovementImmediately(); //stops the character from being rotated with mouse movement
+	// if(BlasterPlayerController){
+	// 	DisableInput(BlasterPlayerController); //prevents firing
+	// }
+	bDisableGameplay = true;
 	//Disable Collision
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -178,6 +180,10 @@ void ABlasterCharacter::Destroyed()
 
 	if(ElimBotComponent){
 		ElimBotComponent->DestroyComponent();
+	}
+	if(Combat && Combat->EquippedWeapon)
+	{
+		Combat->EquippedWeapon->Destroy();
 	}
 }
 
@@ -316,8 +322,32 @@ void ABlasterCharacter::PollInit()
 	}
 }
 
+void ABlasterCharacter::RotateInPlace(float DeltaTime)
+{
+	if(bDisableGameplay){
+		//we have to set these here because they are also being set in AimOffset after this check, so if we return from
+		//this check and these two variables do not already have these values, then they can never have these values
+		bUseControllerRotationYaw = false;
+		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		return;
+	}
+	//we are using the > sign here because the index in which simulated proxy is located in the Enumeration is the lowest.
+	//we are checking this here so we can prevent rotating the root bone for simulated proxies
+	if(GetLocalRole() > ENetRole::ROLE_SimulatedProxy && IsLocallyControlled()){
+		AimOffset(DeltaTime);
+	}
+	else{
+		TimeSinceLastMovementReplication += DeltaTime;
+		if(TimeSinceLastMovementReplication > 0.25f){
+			OnRep_ReplicatedMovement();
+		}
+		CalculateAO_Pitch();
+	}
+}
+
 void ABlasterCharacter::MoveForward(float Value)
 {
+	if(bDisableGameplay) return;
 	if(Controller && Value != 0.f){
 		const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw, 0.f);
 		//just know this gets the direction of the controller
@@ -329,7 +359,7 @@ void ABlasterCharacter::MoveForward(float Value)
 
 void ABlasterCharacter::MoveRight(float Value)
 {
-	
+	if(bDisableGameplay) return;
 	if(Controller && Value != 0.f){
 		const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw, 0.f);
 		//just know this gets the direction of the controller
@@ -351,6 +381,7 @@ void ABlasterCharacter::LookUp(float Value)
 
 void ABlasterCharacter::EquipButtonPressed()
 {
+	if(bDisableGameplay) return;
 	//this will be called on every connected client, so we will have to perform checks to make sure the server is equipping
 	//weapons since the server has authority over the weapons
 	if(Combat){
@@ -366,6 +397,7 @@ void ABlasterCharacter::EquipButtonPressed()
 
 void ABlasterCharacter::CrouchButtonPressed()
 {
+	if(bDisableGameplay) return;
 	//this is a function on the character class, which passes off a lot of behavior on the character movement component
 	//this is replicated to clients as specified in the Character.h file
 	if(bIsCrouched){
@@ -378,6 +410,7 @@ void ABlasterCharacter::CrouchButtonPressed()
 
 void ABlasterCharacter::ReloadButtonPressed()
 {
+	if(bDisableGameplay) return;
 	if(Combat){
 		Combat->Reload();
 	}
@@ -385,6 +418,7 @@ void ABlasterCharacter::ReloadButtonPressed()
 
 void ABlasterCharacter::AimButtonPressed()
 {
+	if(bDisableGameplay) return;
 	if(Combat){
 		Combat->SetAiming(true);
 	}
@@ -392,6 +426,7 @@ void ABlasterCharacter::AimButtonPressed()
 
 void ABlasterCharacter::AimButtonReleased()
 {
+	if(bDisableGameplay) return;
 	if(Combat){
 		Combat->SetAiming(false);
 	}
@@ -500,6 +535,7 @@ void ABlasterCharacter::SimProxiesTurn()
 
 void ABlasterCharacter::Jump()
 {
+	if(bDisableGameplay) return;
 	if(bIsCrouched){
 		UnCrouch();
 	}
@@ -510,6 +546,7 @@ void ABlasterCharacter::Jump()
 
 void ABlasterCharacter::FireButtonPressed()
 {
+	if(bDisableGameplay) return;
 	if(Combat){
 		Combat->FireButtonPressed(true);
 	}
@@ -517,6 +554,7 @@ void ABlasterCharacter::FireButtonPressed()
 
 void ABlasterCharacter::FireButtonReleased()
 {
+	if(bDisableGameplay) return;
 	if(Combat){
 		Combat->FireButtonPressed(false);
 	}
@@ -648,19 +686,7 @@ void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//we are using the > sign here because the index in which simulated proxy is located in the Enumeration is the lowest.
-	//we are checking this here so we can prevent rotating the root bone for simulated proxies
-	if(GetLocalRole() > ENetRole::ROLE_SimulatedProxy && IsLocallyControlled()){
-		AimOffset(DeltaTime);
-	}
-	else{
-		TimeSinceLastMovementReplication += DeltaTime;
-		if(TimeSinceLastMovementReplication > 0.25f){
-			OnRep_ReplicatedMovement();
-		}
-		CalculateAO_Pitch();
-	}
-
+	RotateInPlace(DeltaTime);
 	HideCameraIfCharacterClose();
 	PollInit();
 }
