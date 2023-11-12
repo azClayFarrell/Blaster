@@ -152,6 +152,9 @@ void ABlasterCharacter::MulticastElim_Implementation()
 	// 	DisableInput(BlasterPlayerController); //prevents firing
 	// }
 	bDisableGameplay = true;
+	if(Combat){
+		Combat->FireButtonPressed(false);
+	}
 	//Disable Collision
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -181,7 +184,10 @@ void ABlasterCharacter::Destroyed()
 	if(ElimBotComponent){
 		ElimBotComponent->DestroyComponent();
 	}
-	if(Combat && Combat->EquippedWeapon)
+
+	ABlasterGameMode* BlasterGameMode = Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this));
+	bool bMatchNotInProgress = BlasterGameMode && BlasterGameMode->GetMatchState() != MatchState::InProgress;
+	if(Combat && Combat->EquippedWeapon && bMatchNotInProgress)
 	{
 		Combat->EquippedWeapon->Destroy();
 	}

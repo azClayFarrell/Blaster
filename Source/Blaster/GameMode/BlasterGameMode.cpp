@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
 #include "Blaster/PlayerState/BlasterPlayerState.h"
+#include "Blaster/GameState/BlasterGameState.h"
 
 namespace MatchState{
     const FName Cooldown = FName("Cooldown");
@@ -69,9 +70,12 @@ void ABlasterGameMode::PlayerEliminated(ABlasterCharacter *ElimmedCharacter, ABl
     ABlasterPlayerState* AttackerPlayerState = AttackerController ? Cast<ABlasterPlayerState>(AttackerController->PlayerState) : nullptr;
     ABlasterPlayerState* VictimPlayerState = VictimController ? Cast<ABlasterPlayerState>(VictimController->PlayerState) : nullptr;
 
+    ABlasterGameState* BlasterGameState = GetGameState<ABlasterGameState>();
+
     //if one character eliminated another character, add to the aggressors score
-    if(AttackerPlayerState && AttackerPlayerState != VictimPlayerState){
+    if(AttackerPlayerState && AttackerPlayerState != VictimPlayerState && BlasterGameState){
         AttackerPlayerState->AddToScore(1.f);
+        BlasterGameState->UpdateTopScore(AttackerPlayerState);
     }
 
     if(VictimPlayerState){
