@@ -7,6 +7,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Sound/SoundCue.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "WeaponTypes.h"
 
 void AHitScanWeapon::Fire(const FVector &HitTarget)
 {
@@ -57,4 +59,25 @@ void AHitScanWeapon::Fire(const FVector &HitTarget)
             UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
         }
     }
+}
+
+FVector AHitScanWeapon::TraceEndWithScatter(const FVector &TraceStart, const FVector &HitTarget)
+{
+    //this points to the hit target, but we want to set the length of it directly so it needs to be normalized
+    FVector ToTargetNormalized = (HitTarget - TraceStart).GetSafeNormal();
+    FVector SphereCenter = TraceStart + ToTargetNormalized * DistanceToSphere;
+
+    //selecting random locations within the sphere to use for line traces
+    FVector RandVec = UKismetMathLibrary::RandomUnitVector() * FMath::FRandRange(0.f, SphereRadius);
+    FVector EndLoc = SphereCenter + RandVec;
+
+    //line to the end
+	FVector ToEndLoc = EndLoc - TraceStart;
+
+    //showing what the shots and line traces look like
+	DrawDebugSphere(GetWorld(), SphereCenter, SphereRadius, 12, FColor::Red, true);
+	DrawDebugSphere(GetWorld(), EndLoc, 4.f, 12, FColor::Orange, true);
+	DrawDebugLine(GetWorld(), TraceStart, FVector(TraceStart + ToEndLoc * TRACE_LENGTH / ToEndLoc.Size()), FColor::Cyan, true);
+
+	return FVector(TraceStart + ToEndLoc * TRACE_LENGTH / ToEndLoc.Size());
 }
