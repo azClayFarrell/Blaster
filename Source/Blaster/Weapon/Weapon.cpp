@@ -21,6 +21,10 @@ AWeapon::AWeapon()
 	//this makes the server have authority over all the weapons
 	bReplicates = true;
 
+	//this is important because we need the overlap events to be consistent and the clients can see the location of the weapon
+	// in the same area as the server so that the clients can pick up the weapons
+	SetReplicateMovement(true);
+
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	SetRootComponent(WeaponMesh);
 
