@@ -255,6 +255,10 @@ void ABlasterCharacter::PlayReloadMontage()
 				//no implementation at the moment for a rocket launcher reload
 				SectionName = FName("Rifle");
 				break;
+			case EWeaponType::EWT_Pistol:
+				//no implementation at the moment for a pistol reload
+				SectionName = FName("Rifle");
+				break;
 		}
 
 		AnimInstance->Montage_JumpToSection(SectionName);
