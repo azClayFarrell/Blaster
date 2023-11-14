@@ -130,6 +130,7 @@ void UCombatComponent::BeginPlay()
 
 void UCombatComponent::SetAiming(bool bIsAiming)
 {
+	if(Character == nullptr || EquippedWeapon == nullptr) {return;}
 	//this is just "drawing" the client as aiming without waiting for the server to replicate the request back to it. Immediate feedback
 	bAiming = bIsAiming;
 
@@ -144,6 +145,9 @@ void UCombatComponent::SetAiming(bool bIsAiming)
 	//this is to set the max walk speed when aiming
 	if(Character){
 		Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
+	}
+	if(Character->IsLocallyControlled() && EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SniperRifle){
+		Character->ShowSniperScopeWidget(bAiming);
 	}
 }
 

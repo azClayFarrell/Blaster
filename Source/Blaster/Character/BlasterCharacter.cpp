@@ -168,6 +168,16 @@ void ABlasterCharacter::MulticastElim_Implementation()
 	if(ElimBotSound){
 		UGameplayStatics::SpawnSoundAtLocation(this, ElimBotSound, GetActorLocation());
 	}
+
+	//this is making sure that the scope gets hidden when we die if we are aiming
+	bool bHideSniperScope = IsLocallyControlled() &&
+							Combat &&
+							Combat->bAiming &&
+							Combat->EquippedWeapon &&
+							Combat->EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SniperRifle;
+	if(bHideSniperScope){
+		ShowSniperScopeWidget(false);
+	}
 }
 
 void ABlasterCharacter::ElimTimerFinished()
