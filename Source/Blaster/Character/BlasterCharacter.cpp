@@ -267,6 +267,10 @@ void ABlasterCharacter::PlayReloadMontage()
 				//no implementation at the moment for a shotgun reload
 				SectionName = FName("Rifle");
 				break;
+			case EWeaponType::EWT_SniperRifle:
+				//no implementation at the moment for a sniper reload
+				SectionName = FName("Rifle");
+				break;
 		}
 
 		AnimInstance->Montage_JumpToSection(SectionName);
