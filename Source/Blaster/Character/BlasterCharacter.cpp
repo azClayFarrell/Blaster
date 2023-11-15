@@ -262,28 +262,22 @@ void ABlasterCharacter::PlayReloadMontage()
 				SectionName = FName("Rifle");
 				break;
 			case EWeaponType::EWT_RocketLauncher:
-				//no implementation at the moment for a rocket launcher reload
-				SectionName = FName("Rifle");
+				SectionName = FName("RocketLauncher");
 				break;
 			case EWeaponType::EWT_Pistol:
-				//no implementation at the moment for a pistol reload
-				SectionName = FName("Rifle");
+				SectionName = FName("Pistol");
 				break;
 			case EWeaponType::EWT_SubmachineGun:
-				//no implementation at the moment for a SMG reload
-				SectionName = FName("Rifle");
+				SectionName = FName("Pistol");
 				break;
 			case EWeaponType::EWT_Shotgun:
-				//no implementation at the moment for a shotgun reload
-				SectionName = FName("Rifle");
+				SectionName = FName("Shotgun");
 				break;
 			case EWeaponType::EWT_SniperRifle:
-				//no implementation at the moment for a sniper reload
-				SectionName = FName("Rifle");
+				SectionName = FName("SniperRifle");
 				break;
 			case EWeaponType::EWT_GrenadeLauncher:
-				//no implementation at the moment for a grenade launcher reload
-				SectionName = FName("Rifle");
+				SectionName = FName("GrenadeLauncher");
 				break;
 		}
 
