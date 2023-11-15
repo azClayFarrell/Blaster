@@ -51,6 +51,7 @@ public:
 	FORCEINLINE float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
 
 	bool IsEmpty();
+	bool IsFull();
 
 	virtual void Fire(const FVector& HitTarget);
 
