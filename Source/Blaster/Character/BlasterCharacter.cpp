@@ -347,6 +347,7 @@ void ABlasterCharacter::GrenadeButtonPressed()
  */
 void ABlasterCharacter::ReceiveDamage(AActor *DamagedActor, float Damage, const UDamageType *DamageType, AController *InstigatorController, AActor *DamageCaused)
 {
+	if(bElimmed) {return;}
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.f, MaxHealth);
 	UpdateHUDHealth();
 	PlayHitReactMontage();
