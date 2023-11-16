@@ -79,6 +79,9 @@ void ABlasterCharacter::BeginPlay()
 		//this is a delegate inherited from Actor.h
 		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
 	}
+	if(AttachedGrenade){
+		AttachedGrenade->SetVisibility(false);
+	}
 }
 
 // Called to bind functionality to input
