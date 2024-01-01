@@ -51,6 +51,8 @@ public:
 
 	FORCEINLINE int32 GetGrenades() const { return Grenades; }
 
+	void PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount);
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -172,6 +174,9 @@ private:
 
 	//this is a key value pair, with the key as a weapon type and the value as an integer
 	TMap<EWeaponType, int32> CarriedAmmoMap;
+
+	UPROPERTY(EditAnywhere)
+	int32 MaxCarriedAmmo = 500;
 
 	UPROPERTY(EditAnywhere)
 	int32 StartingARAmmo = 30;
