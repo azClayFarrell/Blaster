@@ -13,18 +13,23 @@ class BLASTER_API UBuffComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:	
-	// Sets default values for this component's properties
 	UBuffComponent();
 	friend class ABlasterCharacter;
+	void Heal(float HealAmount, float HealingTime);
 
 protected:
-	// Called when the game starts
 	virtual void BeginPlay() override;
+
+	void HealRampUp(float DeltaTime);
 
 private:
 
 	UPROPERTY()
 	class ABlasterCharacter* Character;
+
+	bool bHealing = false;
+	float HealingRate = 0;
+	float AmountToHeal = 0.f;
 
 public:
 
